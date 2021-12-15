@@ -398,5 +398,5 @@ async def before():
 handleTime.start()
 
 
-bot.run("OTE2NTA0MTAwNDcwOTQ3ODkw.YarG9Q.Rx4-iGSapWJel-_TsYrU0pCnyp0")
+bot.run("HERE IS UR BOT TOKEN")
 print('Бот готов к работе!')
