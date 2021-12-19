@@ -13,18 +13,16 @@ target_channel_id = 916341503331291148
 async def on_message(message):  # ждёт команды, обрабатывает и удаляет лишние сообщения
     if message.author.id != 916504100470947890:
         if message.channel.id == target_channel_id:
-            await messageHandling(message, '!777', 919991097604849727, "Mercedes-G63 6x6 (777)", 29, 3, 916341503331291148)
-            await messageHandling(message, '!491', 916520885278625822, "Mercedes GLE (491)", 25, 2, 916341503331291148)
+            await messageHandling(message, '!777', 921679140430680084, "Mercedes-G63 6x6 (777)", 29, 3, 916341503331291148)
+            await messageHandling(message, '!666', 921679148538290186, "Lamborghini Urus (666)", 25, 2, 916341503331291148)
             await message.delete()
             channel = bot.get_channel(916341503331291148)
             async for messages in channel.history(limit=20):
                 if messages.author.id != 916504100470947890:
                     await messages.delete()
         if message.channel.id == 916344696773681153:
-            await messageHandling(message, '!605', 916739208658436148, "Mercedes-G63 6x6 (605)", 29, 3, 916344696773681153)
-            await messageHandling(message, '!441', 916739217021866004, "Mercedes GLE (441)", 25, 2, 916344696773681153)
-            await messageHandling(message, '!393', 916739223384653886, "Ford Raptor (393)", 24, 1, 916344696773681153)
-            await messageHandling(message, '!568', 916739229785161778, "Ford Raptor (568)", 24, 1, 916344696773681153)
+            await messageHandling(message, '!605', 921012517575217152, "Mercedes-G63 6x6 (605)", 29, 3, 916344696773681153)
+            await messageHandling(message, '!394', 921012526672646174, "Mercedes-G63 6x6 (394)", 29, 3, 916344696773681153)
             await message.delete()
             channel = bot.get_channel(916344696773681153)
             async for messages in channel.history(limit=20):
@@ -110,7 +108,8 @@ async def messageHandling(content, command, message_id, string, position, choose
                         bool = 1
                     elif bool == 1:
                         months += symbol
-                dt = datetime(year=1, month=int(months), day=int(days), hour=int(hours), minute=int(minutes))  # время из сообщения
+                dt = datetime(year=1, month=int(months), day=int(days), hour=int(
+                    hours), minute=int(minutes))  # время из сообщения
 
                 if (argument3.find('.') > 0):  # получение времени из аргумента
                     hours = ''
@@ -124,7 +123,7 @@ async def messageHandling(content, command, message_id, string, position, choose
                         elif bool == 1:
                             minutes += symbol
                     dt = dt + timedelta(hours=int(hours), minutes=int(minutes))
-                    await noteMoney(owner, hours, minutes, chooseCar, 0)
+                    await noteMoney(owner, hours, minutes, chooseCar, argument2)
                     channel = bot.get_channel(channel_id)
                     message = channel.get_partial_message(message_id)
                     # продление формата hours.minutes
@@ -133,7 +132,7 @@ async def messageHandling(content, command, message_id, string, position, choose
                     await channel.send(f'{string} - Продлили на {hours}:{minutes}. Новое время: {dt.hour}:{dt.minute}.')
                 else:
                     dt = dt + timedelta(hours=int(argument2))
-                    await noteMoney(owner, argument, 0, chooseCar, 0)
+                    await noteMoney(owner, argument, 0, chooseCar, argument2)
                     channel = bot.get_channel(channel_id)
                     message = channel.get_partial_message(message_id)
                     # продление формата hours
@@ -181,12 +180,15 @@ async def messageHandling(content, command, message_id, string, position, choose
                 message = channel.get_partial_message(message_id)
                 if (datetime.now().hour <= 24 and datetime.now().hour > 7):
                     await message.edit(content=f"```{string} - Занят до рестарта {datetime.now().date().day + 1}.{datetime.now().date().month} ```")
+                    channel = bot.get_channel(917122080129032213)  # канал #логи
+                    # отправка лога
+                    await channel.send(f"```{string} - Взяли до рестарта {datetime.now().date().day + 1}.{datetime.now().date().month}. Цена: {argument2} ```")
                 elif (datetime.now().hour < 7 and datetime.now().hour > 0):
                     await message.edit(content=f"```{string} - Занят до рестарта {datetime.now().date().day}.{datetime.now().date().month} ```")
+                    channel = bot.get_channel(917122080129032213)  # канал #логи
+                    # отправка лога
+                    await channel.send(f"```{string} - Взяли до рестарта {datetime.now().date().day}.{datetime.now().date().month}. Цена: {argument2} ```")
                 await noteMoney(owner, 0, 0, chooseCar, int(argument2))
-                channel = bot.get_channel(917122080129032213)  # канал #логи
-                # отправка лога
-                await channel.send(f"```{string} - Взяли до рестарта {datetime.now().date().day}.{datetime.now().date().month}. Цена: {argument2} ```")
             except:
                 print('Что-то пошло не так при обработке запроса: рестарт')
 
@@ -218,27 +220,27 @@ def process(chooseCar, messages, hours, minutes, customSumm):  # для noteMone
     hours = int(hours)
     minutes = int(minutes)
     customSumm = int(customSumm)
-    if chooseCar == 1:
+    if customSumm > 0:
+        customSumm = int(customSumm/1000)
+        thousands += customSumm
+    elif chooseCar == 1:
         thousands += hours*3
         if minutes == 30:
             thousands += 2
         elif minutes == 15:
             thousands += 1
     elif chooseCar == 2:
-        thousands += hours*4
-        if minutes == 30:
-            thousands += 2
-        elif minutes == 15:
-            thousands += 1
+        None
     elif chooseCar == 3:
         thousands += hours*6
+        if hours == 2:
+            thousands -= 1
+        if hours == 3:
+            thousands -= 2
         if minutes == 30:
             thousands += 2
         elif minutes == 15:
             thousands += 1
-    if customSumm > 0:
-        customSumm = int(customSumm/1000)
-        thousands += customSumm
     text = messages.content
     tempText = ''
     counter = 0
@@ -256,14 +258,16 @@ def process(chooseCar, messages, hours, minutes, customSumm):  # для noteMone
 
 @tasks.loop(seconds=20)
 async def handleTime():
-    await eachCar(919991097604849727, 29, "Mercedes-G63 6x6 (777)", 284218293601042433, 916341503331291148, 777)
-    #await eachCar(916520885278625822, 29, "Mercedes-G63 6x6 (491)", 284218293601042433, 916341503331291148, 491)
+    await eachCar(921679140430680084, 29, "Mercedes-G63 6x6 (777)", 284218293601042433, 916341503331291148, 777)
+    await eachCar(921679148538290186, 29, "Lamborghini Urus (666)", 284218293601042433, 916341503331291148, 666)
 
-    #await eachCar(916739208658436148, 29, "Mercedes-G63 6x6 (605)", 471247102438277131, 916344696773681153, 605)
-    #await eachCar(916739217021866004, 29, "Mercedes-G63 6x6 (441)", 471247102438277131, 916344696773681153, 441)
-    #await checkDate()
+    await eachCar(921012517575217152, 29, "Mercedes-G63 6x6 (605)", 471247102438277131, 916344696773681153, 605)
+    await eachCar(921012526672646174, 29, "Mercedes-G63 6x6 (394)", 471247102438277131, 916344696773681153, 394)
+    await checkDate()
     channel = bot.get_channel(916341503331291148)
-    #await channel.send("```Mercedes-G63 6x6 (777) - Свободен ```", file=discord.File(fp="6x6-r-1.png"))
+    # await channel.send("**Статус автомобилей Rico:**")
+    # await channel.send("```Mercedes-G63 6x6 (777) - Свободен ```", file=discord.File(fp="6x6-r.png"))
+    # await channel.send("```Lamborghini Urus (666) - Свободен ```", file=discord.File(fp="urus.png"))
 
 
 async def checkDate():
@@ -334,10 +338,9 @@ async def eachCar(message_id, position, string, user_id, channel_id, argument):
                         message = channel.get_partial_message(message_id)
                         await message.edit(content=f"```{string} - Свободен ```")
             elif (now.month > dt1.month):
-                if now.time() > dt:
-                    channel = bot.get_channel(channel_id)
-                    message = channel.get_partial_message(message_id)
-                    await message.edit(content=f"```{string} - Свободен ```")
+                channel = bot.get_channel(channel_id)
+                message = channel.get_partial_message(message_id)
+                await message.edit(content=f"```{string} - Свободен ```")
 
         else:
             time = text.split()[6]
@@ -362,7 +365,8 @@ async def eachCar(message_id, position, string, user_id, channel_id, argument):
                     bool = 1
                 elif bool == 1:
                     months += symbol
-            dt = datetime(year=1, month=int(months), day=int(days), hour=(int(hours)), minute=int(minutes))
+            dt = datetime(year=1, month=int(months), day=int(
+                days), hour=(int(hours)), minute=int(minutes))
             dt = dt - timedelta(hours=1)
             if datetime.now().day == dt.day and datetime.now().month == dt.month:
                 if datetime.now().time() > dt.time():
@@ -371,11 +375,15 @@ async def eachCar(message_id, position, string, user_id, channel_id, argument):
                     await message.edit(content=f"```{string} - Ожидается освобождение ```")
                     await channel.send(f"{myid}\n```{string} - Ожидается освобождение ```")
             if datetime.now().day > dt.day and datetime.now().month == dt.month:
-                if datetime.now().time() > dt.time():
-                    myid = f'<@{user_id}>'
-                    message = channel.get_partial_message(message_id)
-                    await message.edit(content=f"```{string} - Ожидается освобождение ```")
-                    await channel.send(f"{myid}\n```{string} - Ожидается освобождение ```")
+                myid = f'<@{user_id}>'
+                message = channel.get_partial_message(message_id)
+                await message.edit(content=f"```{string} - Ожидается освобождение ```")
+                await channel.send(f"{myid}\n```{string} - Ожидается освобождение ```")
+            elif datetime.now().month > dt.month:
+                myid = f'<@{user_id}>'
+                message = channel.get_partial_message(message_id)
+                await message.edit(content=f"```{string} - Ожидается освобождение ```")
+                await channel.send(f"{myid}\n```{string} - Ожидается освобождение ```")
 
             # except:
             #print('Что-то пошло не так при проверке времени!')
