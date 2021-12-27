@@ -1,409 +1,197 @@
 # coding=utf-8
 from time import daylight
 import discord
+from discord import channel
+from discord import user
 from discord.ext import commands, tasks
+from discord.ui import view
 from discord.utils import get
 from datetime import datetime, date, time, timedelta
-
+from checkDate import checkDate
+from eachCar import eachCar
+from noteMoney import noteMoney
+from messageHandling import messageHandling
+from access import getId, getLogChannel, getAccess, chooseCar, access_list
 bot = commands.Bot("!")
 target_channel_id = 916341503331291148
+
+channels_list = [923248484579160074, 923201869982101566, 923232543472513054, 923253620164689941, 924441319697424444, 924802330623365130]
+
+async def buttonSetup():
+    view = discord.ui.View()
+    # кнопки при статусе "свободен"
+    item = discord.ui.Button(style=discord.ButtonStyle.blurple, label="1.5 часа")
+    item1 = discord.ui.Button(style=discord.ButtonStyle.blurple, label="2 часа")
+    item2 = discord.ui.Button(style=discord.ButtonStyle.blurple, label="3 часа")
+    view.add_item(item=item)
+    view.add_item(item=item1)
+    view.add_item(item=item2)
+    item.callback = buttonCallback_1_5
+    item1.callback = buttonCallback_2
+    item2.callback = buttonCallback_3
+    view.timeout = 9999999999
+    # кнопки при статусе "занят" или "ожидается"
+    view2 = discord.ui.View()
+    item3 = discord.ui.Button(style=discord.ButtonStyle.blurple, label="Вернули")
+    item3.callback = buttonCallback_return
+    view2.add_item(item=item3)
+    view2.timeout = 9999999999
+    view_list = [view, view2]
+    return view_list
+
+async def buttonCallback_1_5(interaction):
+    await universalButtonCallback(interaction.message, interaction, '1.30')
+
+async def buttonCallback_2(interaction):
+    await universalButtonCallback(interaction.message, interaction, '2')
+
+async def buttonCallback_3(interaction):
+    await universalButtonCallback(interaction.message, interaction, '3')
+
+async def buttonCallback_return(interaction):
+    channel = bot.get_channel(interaction.message.channel.id)
+    text = interaction.message.content
+    car_number = text.split()[2]
+    car_number = car_number[1] + car_number[2] + car_number[3]
+    ad_text = text.split()[0] + ' ' + text.split()[1] + ' ' + text.split()[2]
+    ad_text = ad_text[3:]
+    car_name = text.split()[0] + ' ' + text.split()[1]
+    car_name = car_name[3:]
+    choseCar = chooseCar(car_name)
+    log_channel = getLogChannel(interaction.user.id)
+    access = getAccess(interaction.user.id, car_number)[0]
+    owner = getAccess(interaction.user.id, car_number)[1]
+    if access == 1 and owner >= 0:
+        await messageHandling(bot, f'!{car_number} вернули', interaction.message.id, ad_text, choseCar, interaction.message.channel.id, log_channel, owner, await buttonSetup())
+
+async def universalButtonCallback(message, interaction, time):
+    channel = bot.get_channel(message.channel.id)
+    text = message.content
+    messages = channel.get_partial_message(message.id)
+    car_number = text.split()[2]
+    car_number = car_number[1:4]
+    ad_text = text.split()[0] + ' ' + text.split()[1] + ' ' + text.split()[2]
+    ad_text = ad_text[3:]
+    car_name = text.split()[0] + ' ' + text.split()[1]
+    car_name = car_name[3:]
+    choseCar = chooseCar(car_name)
+    log_channel = getLogChannel(interaction.user.id)
+    access = getAccess(interaction.user.id, car_number)[0]
+    owner = getAccess(interaction.user.id, car_number)[1]
+    #print(access)
+    #print(owner)
+    #print(choseCar)
+    if access == 1 and owner >= 0:
+        await messageHandling(bot, f'!{car_number} {time}', message.id, ad_text, choseCar, message.channel.id, log_channel, owner, await buttonSetup())
+
+
 
 
 @bot.event
 async def on_message(message):  # ждёт команды, обрабатывает и удаляет лишние сообщения
-    if message.author.id != 916504100470947890:
-        if message.channel.id == target_channel_id:
-            await messageHandling(message, '!777', 921679140430680084, "Mercedes-G63 6x6 (777)", 29, 3, 916341503331291148)
-            await messageHandling(message, '!666', 921679148538290186, "Lamborghini Urus (666)", 25, 2, 916341503331291148)
+    print(message.content)
+    for channels in channels_list:
+        if message.channel.id == channels:
+            if message.author.id != 916504100470947890:
+                channel = bot.get_channel(message.channel.id)
+                async for messages in channel.history(limit=30):
+                    if messages.author.id == 916504100470947890:
+                        text = messages.content
+                        command = message.content
+                        car_number = text.split()[2]
+                        car_number = car_number[1:4]
+                        command_number = command[1:4]
+                        if car_number == command_number:
+                            ad_text = text.split()[0] + ' ' + text.split()[1] + ' ' + text.split()[2]
+                            ad_text = ad_text[3:]
+                            access = getAccess(message.author.id, car_number)[0] 
+                            owner = getAccess(message.author.id, car_number)[1]
+                            log_channel = getLogChannel(message.author.id)
+                            if access == 1:
+                                await messageHandling(bot, message.content, messages.id, ad_text, 3, message.channel.id, log_channel, owner, await buttonSetup())
+                            break
             await message.delete()
-            channel = bot.get_channel(916341503331291148)
-            async for messages in channel.history(limit=20):
-                if messages.author.id != 916504100470947890:
-                    await messages.delete()
-        if message.channel.id == 916344696773681153:
-            await messageHandling(message, '!605', 921012517575217152, "Mercedes-G63 6x6 (605)", 29, 3, 916344696773681153)
-            await messageHandling(message, '!394', 921012526672646174, "Mercedes-G63 6x6 (394)", 29, 3, 916344696773681153)
-            await message.delete()
-            channel = bot.get_channel(916344696773681153)
-            async for messages in channel.history(limit=20):
-                if messages.author.id != 916504100470947890:
-                    await messages.delete()
 
 
-async def messageHandling(content, command, message_id, string, position, chooseCar, channel_id):  # принимает команды
-    if (content.content.startswith(command)):
-        owner = 0
-        if channel_id == 916341503331291148:
-            owner = 0
-        elif channel_id == 916344696773681153:
-            owner = 1
-        argument = content.content.split()[1]
-        argument2 = 0
-        argument3 = 'Не известно'
-        try:
-            argument2 = content.content.split()[2]
-        except:
-            argument2 = 0
+    for user in access_list:
+        if message.channel.id == user[0][2]:
+            if message.author.id == user[0][0]:
+                await customNoteMoney(message, '!добавить', user[0][3], 0)
+                await customNoteMoney(message, '!отнять', user[0][3], 1)
+                await message.delete()
+                break
+                
 
-        if content.content.split()[1] == 'рестарт' or content.content.split()[1] == 'продлили':
-            try:
-                argument3 = content.content.split()[2]
-            except:
-                None
-        else:
-            try:
-                argument3 = content.content.split()[2]
-            except:
-                None
-
-        if (argument == 'вернули'):
-            try:
-                channel = bot.get_channel(channel_id)
-                command_arg = command[1] + command[2] + command[3]
-                message_arg = ''
-                msg_to_delete = 0
-                async for messages in channel.history(limit=4):
-                    try:
-                        tempText = messages.content.split()[3]
-                        message_arg = tempText[1] + tempText[2] + tempText[3]
-                        if messages.content.split()[5] == 'Ожидается':
-                            if command_arg == message_arg:
-                                msg_to_delete = messages.id
-                                message = channel.get_partial_message(
-                                    msg_to_delete)
-                                await message.delete()
-                    except:
-                        None
-                message = channel.get_partial_message(message_id)
-                await message.edit(content=f"```{string} - Свободен ```")
-            except:
-                print('Что-то пошло не так при обработке запроса: вернули')
-        elif (argument == 'продлили' or argument == 'продлить'):
-            try:
-                channel = bot.get_channel(channel_id)
-                message = channel.get_partial_message(message_id)
-                message = await message.fetch()
-                text = message.content
-                time = text.split()[6]
-                date = text.split()[7]
-                days = ''
-                months = ''
-                hours = ''
-                minutes = ''
-                bool = 0
-                print(time)
-                print(date)
-                for symbol in time:
-                    if bool == 0 and symbol.isdigit():
-                        hours += symbol
-                    elif bool == 0 and symbol == ':':
-                        bool = 1
-                    elif bool == 1:
-                        minutes += symbol
-                bool = 0
-                for symbol in date:
-                    if bool == 0 and symbol.isdigit():
-                        days += symbol
-                    elif bool == 0 and symbol == '.':
-                        bool = 1
-                    elif bool == 1:
-                        months += symbol
-                dt = datetime(year=1, month=int(months), day=int(days), hour=int(
-                    hours), minute=int(minutes))  # время из сообщения
-
-                if (argument3.find('.') > 0):  # получение времени из аргумента
-                    hours = ''
-                    minutes = ''
-                    bool = 0
-                    for symbol in argument3:
-                        if bool == 0 and symbol.isdigit():
-                            hours += symbol
-                        elif bool == 0 and symbol == '.':
-                            bool = 1
-                        elif bool == 1:
-                            minutes += symbol
-                    dt = dt + timedelta(hours=int(hours), minutes=int(minutes))
-                    await noteMoney(owner, hours, minutes, chooseCar, argument2)
-                    channel = bot.get_channel(channel_id)
-                    message = channel.get_partial_message(message_id)
-                    # продление формата hours.minutes
-                    await message.edit(content=f'```{string} - Занят до {dt.hour}:{dt.minute} {dt.day}.{dt.month} ```')
-                    channel = bot.get_channel(917122080129032213)
-                    await channel.send(f'{string} - Продлили на {hours}:{minutes}. Новое время: {dt.hour}:{dt.minute}.')
-                else:
-                    dt = dt + timedelta(hours=int(argument2))
-                    await noteMoney(owner, argument, 0, chooseCar, argument2)
-                    channel = bot.get_channel(channel_id)
-                    message = channel.get_partial_message(message_id)
-                    # продление формата hours
-                    await message.edit(content=f'```{string} - {dt.hour}:{dt.minute} {dt.day}.{dt.month} ```')
-                    channel = bot.get_channel(917122080129032213)
-                    await channel.send(f'```{string} - Продлили на {argument2} час(ов). Новое время: {dt.hour}:{dt.minute}. ```')
-            except:
-                print('Что-то пошло не так при обработке запроса: продлить')
-
-        elif (argument != 'рестарт'):
-            try:
-                gmtdiff = 1
-                if (argument.find('.') > 0):
-                    hours = ''
-                    minutes = ''
-                    bool = 0
-                    for symbol in argument:
-                        if bool == 0 and symbol.isdigit():
-                            hours += symbol
-                        elif bool == 0 and symbol == '.':
-                            bool = 1
-                        elif bool == 1:
-                            minutes += symbol
-                    dt = datetime.now() + timedelta(hours=(int(hours) + gmtdiff), minutes=int(minutes))
-                    time = dt.strftime("%H:%M")
-                    await noteMoney(owner, hours, minutes, chooseCar, 0)
-                else:
-                    dt = datetime.now() + timedelta(hours=(int(argument) + gmtdiff))
-                    time = dt.strftime("%H:%M")
-                    await noteMoney(owner, argument, 0, chooseCar, 0)
-                date = datetime.now()
-                if dt.time() < datetime.now().time():
-                    date = date + timedelta(days=1)
-                channel = bot.get_channel(channel_id)
-                message = channel.get_partial_message(message_id)
-                await message.edit(content=f"```{string} - Занят до {time} {date.day}.{date.month} ```")
-                channel = bot.get_channel(917122080129032213)
-                # отправка лога
-                await channel.send(f"```{string} - Взяли до {time}. Взял: {argument3} ```")
-            except:
-                print('Что-то пошло не так при обработке запроса: время')
-        elif argument == 'рестарт':
-            try:
-                channel = bot.get_channel(channel_id)
-                message = channel.get_partial_message(message_id)
-                if (datetime.now().hour <= 24 and datetime.now().hour > 7):
-                    await message.edit(content=f"```{string} - Занят до рестарта {datetime.now().date().day + 1}.{datetime.now().date().month} ```")
-                    channel = bot.get_channel(917122080129032213)  # канал #логи
-                    # отправка лога
-                    await channel.send(f"```{string} - Взяли до рестарта {datetime.now().date().day + 1}.{datetime.now().date().month}. Цена: {argument2} ```")
-                elif (datetime.now().hour < 7 and datetime.now().hour > 0):
-                    await message.edit(content=f"```{string} - Занят до рестарта {datetime.now().date().day}.{datetime.now().date().month} ```")
-                    channel = bot.get_channel(917122080129032213)  # канал #логи
-                    # отправка лога
-                    await channel.send(f"```{string} - Взяли до рестарта {datetime.now().date().day}.{datetime.now().date().month}. Цена: {argument2} ```")
-                await noteMoney(owner, 0, 0, chooseCar, int(argument2))
-            except:
-                print('Что-то пошло не так при обработке запроса: рестарт')
-
-
-# в зависимости от канала добавляет деньги мне или Хурику
-async def noteMoney(chooseOwner, hours, minutes, chooseCar, customSumm):
-    channel = bot.get_channel(916563929612820512)
-    # await channel.send(content="04.12.2020 - Rico заработал $100.000")
-    async for messages in channel.history(limit=2):
-        result = process(chooseCar, messages, hours, minutes, customSumm)
-        if chooseOwner == 0:
-            if messages.content.find('Rico') > 0:
-                await messages.edit(content=f"{result[0]} {result[1]}")
-        elif chooseOwner == 1:
-            if messages.content.find('Hurick') > 0:
-                await messages.edit(content=f"{result[0]} {result[1]}")
-
-
-def process(chooseCar, messages, hours, minutes, customSumm):  # для noteMoney()
-    bool = 0
-    thousands = ''
-    money = messages.content.split()[4]
-    for symbol in money:
-        if bool == 0 and symbol.isdigit():
-            thousands += symbol
-        elif bool == 0 and symbol == '.':
-            bool = 1
-    thousands = int(thousands)
-    hours = int(hours)
-    minutes = int(minutes)
-    customSumm = int(customSumm)
-    if customSumm > 0:
-        customSumm = int(customSumm/1000)
-        thousands += customSumm
-    elif chooseCar == 1:
-        thousands += hours*3
-        if minutes == 30:
-            thousands += 2
-        elif minutes == 15:
-            thousands += 1
-    elif chooseCar == 2:
-        None
-    elif chooseCar == 3:
-        thousands += hours*6
-        if hours == 2:
-            thousands -= 1
-        if hours == 3:
-            thousands -= 2
-        if minutes == 30:
-            thousands += 2
-        elif minutes == 15:
-            thousands += 1
-    text = messages.content
-    tempText = ''
-    counter = 0
-    for str in text.split():
-        if counter < 4:
-            counter += 1
-            tempText += ' '
-            tempText += str
-    money_string = '$'
-    money_string += f'{thousands}'
-    money_string += '.'
-    money_string += '000'
-    return [tempText, money_string]
-
+async def customNoteMoney(message, command, owner, negative):
+    if message.content.startswith(command):
+        text = message.content
+        summ = text.split()[1]
+        summ = int(summ)
+        await noteMoney(bot, owner, 0, 0, 0, summ, negative)
 
 @tasks.loop(seconds=20)
 async def handleTime():
-    await eachCar(921679140430680084, 29, "Mercedes-G63 6x6 (777)", 284218293601042433, 916341503331291148, 777)
-    await eachCar(921679148538290186, 29, "Lamborghini Urus (666)", 284218293601042433, 916341503331291148, 666)
+    for channel in channels_list:
+        channel = bot.get_channel(channel)
+        async for messages in channel.history(limit=30):
+            if messages.author.id == 916504100470947890:
+                text = messages.content
+                if text.find('Статус') < 0:
+                    ad_text = text.split()[0] + ' ' + text.split()[1] + ' ' + text.split()[2]
+                    ad_text = ad_text[3:]
+                    car_number = text.split()[2]
+                    car_number = car_number[1:4]
+                    user_id = getId(car_number)
+                    await eachCar(bot, messages.id, ad_text, user_id, messages.channel.id, await buttonSetup())
+                    break
 
-    await eachCar(921012517575217152, 29, "Mercedes-G63 6x6 (605)", 471247102438277131, 916344696773681153, 605)
-    await eachCar(921012526672646174, 29, "Mercedes-G63 6x6 (394)", 471247102438277131, 916344696773681153, 394)
-    await checkDate()
-    channel = bot.get_channel(916341503331291148)
-    # await channel.send("**Статус автомобилей Rico:**")
-    # await channel.send("```Mercedes-G63 6x6 (777) - Свободен ```", file=discord.File(fp="6x6-r.png"))
-    # await channel.send("```Lamborghini Urus (666) - Свободен ```", file=discord.File(fp="urus.png"))
+    await checkDate(bot)
+    channel = bot.get_channel(924802330623365130)
+    #await channel.send("26.12.2021 - Tovsali заработал $0")
+    #await channel.send("```Mercedes-G63 6x6 (222) - Залог $2.000 ```")
+    #await channel.send("```Mercedes-G63 6x6 (605) - Залог $2.000 ```")
+    #await channel.send("```Mercedes-G63 6x6 (394) - Залог $2.000 ```")
+    #await channel.send("24.12.2021 - Conqueror заработал $0")
+    #'<@{user_id}>'
+    #await channel.send("**Статус автомобилей <@467594732906741763>:**")
+    #await channel.send("```Buggati Chiron (457) - Свободен ```", file=discord.File(fp="assets/chiron.png"))
+    #await channel.send("```McLaren Senna (347) - Свободен ```", file=discord.File(fp="assets/mclaren.png"))
+    #await channel.send("```McLaren 720s (856) - Свободен ```", file=discord.File(fp="assets/mclaren720.png"))
+    #await channel.send("```Ferrari Aperta (658) - Свободен ```", file=discord.File(fp="assets/aperta.png"))
+    #await channel.send("```Pagani Huayra (327) - Свободен ```", file=discord.File(fp="assets/pagani.png"))
 
-
-async def checkDate():
-    channel = bot.get_channel(916563929612820512)
-    async for messages in channel.history(limit=1):
-        bool = 0
-        text = messages.content
-        day = ''
-        month = ''
-        year = ''
-        for symbol in text.split()[0]:
-            if bool == 0 and symbol.isdigit():
-                day += symbol
-            elif bool == 0 and symbol == '.':
-                bool = 1
-            elif bool == 1 and symbol.isdigit():
-                month += symbol
-            elif bool == 1 and symbol == '.':
-                bool = 2
-            elif bool == 2 and symbol.isdigit():
-                year += symbol
-        now = datetime.now()
-        dt = datetime(year=int(year), month=int(month), day=int(day))
-        if (now.year == dt.year):
-            if now.month == dt.month:
-                if now.day > dt.day:
-                    await channel.send(content=f"{now.day}.{now.month}.{now.year} - Rico заработал $0")
-                    await channel.send(content=f"{now.day}.{now.month}.{now.year} - Hurick заработал $0")
-            elif now.month > dt.month:
-                await channel.send(content=f"{now.day}.{now.month}.{now.year} - Rico заработал $0")
-                await channel.send(content=f"{now.day}.{now.month}.{now.year} - Hurick заработал $0")
-        elif now.year > dt.year:
-            await channel.send(content=f"{now.day}.{now.month}.{now.year} - Rico заработал $0")
-            await channel.send(content=f"{now.day}.{now.month}.{now.year} - Hurick заработал $0")
+    await buttonSetup()
 
 
-async def eachCar(message_id, position, string, user_id, channel_id, argument):
-    count = 0
-    status = ''
-    channel = bot.get_channel(channel_id)
-    message = channel.get_partial_message(message_id)
-    message = await message.fetch()
-    text = message.content
-    for simbols in message.content:
-        count += 1
-        if (count >= position):
-            status += simbols
-    if (text.split()[4] == 'Занят'):
-        if (text.split()[6] == 'рестарта'):
-            now = datetime.now()
-            dt = datetime(1, 1, 1, 7, 0, 0).time()
-            rsdt = text.split()[7]
-            day = ''
-            month = ''
-            bool = 0
-            for symbol in rsdt:
-                if bool == 0 and symbol.isdigit():
-                    day += symbol
-                elif bool == 0 and symbol == '.':
-                    bool = 1
-                elif bool == 1:
-                    month += symbol
-            dt1 = datetime(1, int(month), int(day), 7, 0, 0)
-            if (now.month == dt1.month):
-                if (now.day >= dt1.day):
-                    if now.time() > dt:
-                        channel = bot.get_channel(channel_id)
-                        message = channel.get_partial_message(message_id)
-                        await message.edit(content=f"```{string} - Свободен ```")
-            elif (now.month > dt1.month):
-                channel = bot.get_channel(channel_id)
-                message = channel.get_partial_message(message_id)
-                await message.edit(content=f"```{string} - Свободен ```")
+@tasks.loop(hours=99999)
+async def setupButtons():
+    for channels in channels_list:
+        channel = bot.get_channel(channels)
+        async for messages in channel.history(limit=20):               
+            if messages.author.id == 916504100470947890:
+                text = messages.content
+                if text.split()[0].find('Статус') < 0:
+                    status = text.split()[4]
+                    view = await buttonSetup()
+                    if status == 'Свободен':
+                        await messages.edit(content=f'{text}', view=view[0])
+                    elif status == 'Занят':
+                        await messages.edit(content=f'{text}', view=view[1])
+                    elif status == 'Ожидается':
+                        await messages.edit(content=f'{text}', view=view[1])
 
-        else:
-            time = text.split()[6]
-            date = text.split()[7]
-            days = ''
-            months = ''
-            hours = ''
-            minutes = ''
-            bool = 0
-            for symbol in time:
-                if bool == 0 and symbol.isdigit():
-                    hours += symbol
-                elif bool == 0 and symbol == ':':
-                    bool = 1
-                elif bool == 1:
-                    minutes += symbol
-            bool = 0
-            for symbol in date:
-                if bool == 0 and symbol.isdigit():
-                    days += symbol
-                elif bool == 0 and symbol == '.':
-                    bool = 1
-                elif bool == 1:
-                    months += symbol
-            dt = datetime(year=1, month=int(months), day=int(
-                days), hour=(int(hours)), minute=int(minutes))
-            dt = dt - timedelta(hours=1)
-            if datetime.now().day == dt.day and datetime.now().month == dt.month:
-                if datetime.now().time() > dt.time():
-                    myid = f'<@{user_id}>'
-                    message = channel.get_partial_message(message_id)
-                    await message.edit(content=f"```{string} - Ожидается освобождение ```")
-                    await channel.send(f"{myid}\n```{string} - Ожидается освобождение ```")
-            if datetime.now().day > dt.day and datetime.now().month == dt.month:
-                myid = f'<@{user_id}>'
-                message = channel.get_partial_message(message_id)
-                await message.edit(content=f"```{string} - Ожидается освобождение ```")
-                await channel.send(f"{myid}\n```{string} - Ожидается освобождение ```")
-            elif datetime.now().month > dt.month:
-                myid = f'<@{user_id}>'
-                message = channel.get_partial_message(message_id)
-                await message.edit(content=f"```{string} - Ожидается освобождение ```")
-                await channel.send(f"{myid}\n```{string} - Ожидается освобождение ```")
-
-            # except:
-            #print('Что-то пошло не так при проверке времени!')
-    # elif text.split()[4] == 'Ожидается':
-    #     notification_appears = 0
-    #     async for messages in channel.history(limit=4):
-    #         try:
-    #             temptext = messages.content.split()[3]
-    #             message_arg = temptext[1] + temptext[2] + temptext[3]
-    #             if message_arg == argument:
-    #                 notification_appears = 1
-    #         except:
-    #             None
-
+        
 
 @handleTime.before_loop
 async def before():
     await bot.wait_until_ready()
 
+@setupButtons.before_loop
+async def before():
+    await bot.wait_until_ready()
+
 handleTime.start()
+setupButtons.start()
 
 
 bot.run("OTE2NTA0MTAwNDcwOTQ3ODkw.YarG9Q.Rx4-iGSapWJel-_TsYrU0pCnyp0")
