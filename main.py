@@ -4,7 +4,6 @@ import discord
 from discord import channel
 from discord import user
 from discord.ext import commands, tasks
-from discord.ui import view
 from discord.utils import get
 from datetime import datetime, date, time, timedelta
 from checkDate import checkDate
