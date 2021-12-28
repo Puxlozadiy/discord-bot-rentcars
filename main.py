@@ -14,8 +14,10 @@ from messageHandling import messageHandling
 from access import getId, getLogChannel, getAccess, chooseCar, access_list
 bot = commands.Bot("!")
 target_channel_id = 916341503331291148
+version = 1
 
 channels_list = [923248484579160074, 923201869982101566, 923232543472513054, 923253620164689941, 924441319697424444, 924802330623365130]
+
 
 async def buttonSetup():
     view = discord.ui.View()
@@ -32,21 +34,26 @@ async def buttonSetup():
     view.timeout = 9999999999
     # кнопки при статусе "занят" или "ожидается"
     view2 = discord.ui.View()
-    item3 = discord.ui.Button(style=discord.ButtonStyle.blurple, label="Вернули")
+    item3 = discord.ui.Button(
+        style=discord.ButtonStyle.blurple, label="Вернули")
     item3.callback = buttonCallback_return
     view2.add_item(item=item3)
     view2.timeout = 9999999999
     view_list = [view, view2]
     return view_list
 
+
 async def buttonCallback_1_5(interaction):
     await universalButtonCallback(interaction.message, interaction, '1.30')
+
 
 async def buttonCallback_2(interaction):
     await universalButtonCallback(interaction.message, interaction, '2')
 
+
 async def buttonCallback_3(interaction):
     await universalButtonCallback(interaction.message, interaction, '3')
+
 
 async def buttonCallback_return(interaction):
     channel = bot.get_channel(interaction.message.channel.id)
@@ -64,6 +71,7 @@ async def buttonCallback_return(interaction):
     if access == 1 and owner >= 0:
         await messageHandling(bot, f'!{car_number} вернули', interaction.message.id, ad_text, choseCar, interaction.message.channel.id, log_channel, owner, await buttonSetup())
 
+
 async def universalButtonCallback(message, interaction, time):
     channel = bot.get_channel(message.channel.id)
     text = message.content
@@ -78,13 +86,11 @@ async def universalButtonCallback(message, interaction, time):
     log_channel = getLogChannel(interaction.user.id)
     access = getAccess(interaction.user.id, car_number)[0]
     owner = getAccess(interaction.user.id, car_number)[1]
-    #print(access)
-    #print(owner)
-    #print(choseCar)
+    # print(access)
+    # print(owner)
+    # print(choseCar)
     if access == 1 and owner >= 0:
         await messageHandling(bot, f'!{car_number} {time}', message.id, ad_text, choseCar, message.channel.id, log_channel, owner, await buttonSetup())
-
-
 
 
 @bot.event
@@ -102,16 +108,17 @@ async def on_message(message):  # ждёт команды, обрабатыва�
                         car_number = car_number[1:4]
                         command_number = command[1:4]
                         if car_number == command_number:
-                            ad_text = text.split()[0] + ' ' + text.split()[1] + ' ' + text.split()[2]
+                            ad_text = text.split()[
+                                0] + ' ' + text.split()[1] + ' ' + text.split()[2]
                             ad_text = ad_text[3:]
-                            access = getAccess(message.author.id, car_number)[0] 
+                            access = getAccess(
+                                message.author.id, car_number)[0]
                             owner = getAccess(message.author.id, car_number)[1]
                             log_channel = getLogChannel(message.author.id)
                             if access == 1:
                                 await messageHandling(bot, message.content, messages.id, ad_text, 3, message.channel.id, log_channel, owner, await buttonSetup())
                             break
             await message.delete()
-
 
     for user in access_list:
         if message.channel.id == user[0][2]:
@@ -120,7 +127,7 @@ async def on_message(message):  # ждёт команды, обрабатыва�
                 await customNoteMoney(message, '!отнять', user[0][3], 1)
                 await message.delete()
                 break
-                
+
 
 async def customNoteMoney(message, command, owner, negative):
     if message.content.startswith(command):
@@ -128,6 +135,7 @@ async def customNoteMoney(message, command, owner, negative):
         summ = text.split()[1]
         summ = int(summ)
         await noteMoney(bot, owner, 0, 0, 0, summ, negative)
+
 
 @tasks.loop(seconds=20)
 async def handleTime():
@@ -137,7 +145,8 @@ async def handleTime():
             if messages.author.id == 916504100470947890:
                 text = messages.content
                 if text.find('Статус') < 0:
-                    ad_text = text.split()[0] + ' ' + text.split()[1] + ' ' + text.split()[2]
+                    ad_text = text.split()[0] + ' ' + \
+                        text.split()[1] + ' ' + text.split()[2]
                     ad_text = ad_text[3:]
                     car_number = text.split()[2]
                     car_number = car_number[1:4]
@@ -147,18 +156,18 @@ async def handleTime():
 
     await checkDate(bot)
     channel = bot.get_channel(924802330623365130)
-    #await channel.send("26.12.2021 - Tovsali заработал $0")
-    #await channel.send("```Mercedes-G63 6x6 (222) - Залог $2.000 ```")
-    #await channel.send("```Mercedes-G63 6x6 (605) - Залог $2.000 ```")
-    #await channel.send("```Mercedes-G63 6x6 (394) - Залог $2.000 ```")
-    #await channel.send("24.12.2021 - Conqueror заработал $0")
-    #'<@{user_id}>'
-    #await channel.send("**Статус автомобилей <@467594732906741763>:**")
-    #await channel.send("```Buggati Chiron (457) - Свободен ```", file=discord.File(fp="assets/chiron.png"))
-    #await channel.send("```McLaren Senna (347) - Свободен ```", file=discord.File(fp="assets/mclaren.png"))
-    #await channel.send("```McLaren 720s (856) - Свободен ```", file=discord.File(fp="assets/mclaren720.png"))
-    #await channel.send("```Ferrari Aperta (658) - Свободен ```", file=discord.File(fp="assets/aperta.png"))
-    #await channel.send("```Pagani Huayra (327) - Свободен ```", file=discord.File(fp="assets/pagani.png"))
+    # await channel.send("26.12.2021 - Tovsali заработал $0")
+    # await channel.send("```Mercedes-G63 6x6 (222) - Залог $2.000 ```")
+    # await channel.send("```Mercedes-G63 6x6 (605) - Залог $2.000 ```")
+    # await channel.send("```Mercedes-G63 6x6 (394) - Залог $2.000 ```")
+    # await channel.send("24.12.2021 - Conqueror заработал $0")
+    # '<@{user_id}>'
+    # await channel.send("**Статус автомобилей <@467594732906741763>:**")
+    # await channel.send("```Buggati Chiron (457) - Свободен ```", file=discord.File(fp="assets/chiron.png"))
+    # await channel.send("```McLaren Senna (347) - Свободен ```", file=discord.File(fp="assets/mclaren.png"))
+    # await channel.send("```McLaren 720s (856) - Свободен ```", file=discord.File(fp="assets/mclaren720.png"))
+    # await channel.send("```Ferrari Aperta (658) - Свободен ```", file=discord.File(fp="assets/aperta.png"))
+    # await channel.send("```Pagani Huayra (327) - Свободен ```", file=discord.File(fp="assets/pagani.png"))
 
     await buttonSetup()
 
@@ -167,7 +176,7 @@ async def handleTime():
 async def setupButtons():
     for channels in channels_list:
         channel = bot.get_channel(channels)
-        async for messages in channel.history(limit=20):               
+        async for messages in channel.history(limit=20):
             if messages.author.id == 916504100470947890:
                 text = messages.content
                 if text.split()[0].find('Статус') < 0:
@@ -180,11 +189,11 @@ async def setupButtons():
                     elif status == 'Ожидается':
                         await messages.edit(content=f'{text}', view=view[1])
 
-        
 
 @handleTime.before_loop
 async def before():
     await bot.wait_until_ready()
+
 
 @setupButtons.before_loop
 async def before():
@@ -193,6 +202,5 @@ async def before():
 handleTime.start()
 setupButtons.start()
 
-
-bot.run("HERE IS UR BOT TOKEN")
 print('Бот готов к работе!')
+bot.run("OTE2NTA0MTAwNDcwOTQ3ODkw.YarG9Q.Rx4-iGSapWJel-_TsYrU0pCnyp0")
