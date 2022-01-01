@@ -6,11 +6,12 @@ from discord.ext import commands, tasks
 from discord.utils import get
 from datetime import datetime, date, time, timedelta
 
-async def eachCar(bot, message_id, string, user_id, channel_id, view):
+async def eachCar(bot, message_id, string, user_id, channel_id, view, buttonBool):
     channel = bot.get_channel(channel_id)
     message = channel.get_partial_message(message_id)
     message = await message.fetch()
     text = message.content
+    done_bool = 1
     if (text.split()[4] == 'Занят'):
         if (text.split()[6] == 'рестарта'):
             now = datetime.now()
@@ -32,11 +33,17 @@ async def eachCar(bot, message_id, string, user_id, channel_id, view):
                     if now.time() > dt:
                         channel = bot.get_channel(channel_id)
                         message = channel.get_partial_message(message_id)
-                        await message.edit(content=f"```{string} - Свободен ```", view=view[0])
+                        if buttonBool == 1:
+                            await message.edit(content=f"```{string} - Свободен ```", view=view[0])
+                        else:
+                            await message.edit(content=f"```{string} - Свободен ```")
             elif (now.month > dt1.month):
                 channel = bot.get_channel(channel_id)
                 message = channel.get_partial_message(message_id)
-                await message.edit(content=f"```{string} - Свободен ```", view=view[0])
+                if buttonBool == 1:
+                    await message.edit(content=f"```{string} - Свободен ```", view=view[0])
+                else:
+                    await message.edit(content=f"```{string} - Свободен ```")
 
         else:
             time = text.split()[6]
@@ -68,15 +75,24 @@ async def eachCar(bot, message_id, string, user_id, channel_id, view):
                 if datetime.now().time() > dt.time():
                     myid = f'<@{user_id}>'
                     message = channel.get_partial_message(message_id)
-                    await message.edit(content=f"```{string} - Ожидается освобождение ```", view=view[1])
+                    if buttonBool == 1:
+                        await message.edit(content=f"```{string} - Ожидается освобождение ```", view=view[1])
+                    else:
+                        await message.edit(content=f"```{string} - Ожидается освобождение ```")
                     await channel.send(f"{myid}\n```{string} - Ожидается освобождение ```")
             if datetime.now().day > dt.day and datetime.now().month == dt.month:
                 myid = f'<@{user_id}>'
                 message = channel.get_partial_message(message_id)
-                await message.edit(content=f"```{string} - Ожидается освобождение ```", view=view[1])
+                if buttonBool == 1:
+                    await message.edit(content=f"```{string} - Ожидается освобождение ```", view=view[1])
+                else:
+                    await message.edit(content=f"```{string} - Ожидается освобождение ```")
                 await channel.send(f"{myid}\n```{string} - Ожидается освобождение ```")
             elif datetime.now().month > dt.month:
                 myid = f'<@{user_id}>'
                 message = channel.get_partial_message(message_id)
-                await message.edit(content=f"```{string} - Ожидается освобождение ```", view=view[1])
+                if buttonBool == 1:
+                    await message.edit(content=f"```{string} - Ожидается освобождение ```", view=view[1])
+                else:
+                    await message.edit(content=f"```{string} - Ожидается освобождение ```")
                 await channel.send(f"{myid}\n```{string} - Ожидается освобождение ```")

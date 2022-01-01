@@ -5,36 +5,19 @@ from discord import channel
 from discord.ext import commands, tasks
 from discord.utils import get
 from datetime import datetime, date, time, timedelta
+from access import access_list
 
 
 async def checkDate(bot):
-    channel = bot.get_channel(916563929612820512) # бухгалтерия Rico и Hurick
-    channel1 = bot.get_channel(923215838675341333) # бухгалтерия Nick
-    channel2 = bot.get_channel(923275886697021500) # бухгалтерия Kapsul
-    channel3 = bot.get_channel(923882650417115177) # бухгалтерия Conqueror
-    channel4 = bot.get_channel(924437573898731600) # бухгалтерия Conqueror
-    async for messages in channel.history(limit=2):
-        if messages.author.id == 916504100470947890:
-            await checkDateProcess(messages, 916563929612820512, 1, bot)
-            break
-    async for messages in channel1.history(limit=2):
-        if messages.author.id == 916504100470947890:
-            await checkDateProcess(messages, 923215838675341333, 2, bot)
-            break
-    async for messages in channel2.history(limit=2):
-        if messages.author.id == 916504100470947890:
-            await checkDateProcess(messages, 923275886697021500, 3, bot)
-            break
-    async for messages in channel3.history(limit=2):
-        if messages.author.id == 916504100470947890:
-            await checkDateProcess(messages, 923882650417115177, 4, bot)
-            break
-    async for messages in channel4.history(limit=2):
-        if messages.author.id == 916504100470947890:
-            await checkDateProcess(messages, 924437573898731600, 5, bot)
-            break
+    for user in access_list:
+        channel = bot.get_channel(user[0][2])
+        async for messages in channel.history(limit=2):
+            if messages.author.id == 916504100470947890:
+                await checkDateProcess(messages, user[0][2], user[0][3], bot, user[0][4])
+                break
 
-async def checkDateProcess(messages, channel_id, member, bot):
+
+async def checkDateProcess(messages, channel_id, member, bot, name):
     try:
         channel = bot.get_channel(channel_id)
         bool = 0
@@ -58,24 +41,20 @@ async def checkDateProcess(messages, channel_id, member, bot):
         if (now.year == dt.year):
             if now.month == dt.month:
                 if now.day > dt.day:
-                    await sendMoney(member, channel)
+                    await sendMoney(member, channel, name)
             elif now.month > dt.month:
-                await sendMoney(member, channel)
+                await sendMoney(member, channel, name)
         elif now.year > dt.year:
-            await sendMoney(member, channel)
+            await sendMoney(member, channel, name)
     except:
         print('Что-то пошло не так при провкерке даты checkDate()')
 
-async def sendMoney(member, channel):
+async def sendMoney(member, channel, name):
     now = datetime.now()
-    if member == 1:
-        await channel.send(content=f"{now.day}.{now.month}.{now.year} - Rico заработал $0")
+    if member == 0:
+        await channel.send(content=f"{now.day}.{now.month}.{now.year} - {name} заработал $0")
         await channel.send(content=f"{now.day}.{now.month}.{now.year} - Hurick заработал $0")
-    elif member == 2:
-        await channel.send(content=f"{now.day}.{now.month}.{now.year} - Nick заработал $0")
-    elif member == 3:
-        await channel.send(content=f"{now.day}.{now.month}.{now.year} - Kapsul заработал $0")
-    elif member == 4:
-        await channel.send(content=f"{now.day}.{now.month}.{now.year} - Conqueror заработал $0")
-    elif member == 5:
-        await channel.send(content=f"{now.day}.{now.month}.{now.year} - Tovsali заработал $0")
+    elif member == 1:
+        None
+    else:
+        await channel.send(content=f"{now.day}.{now.month}.{now.year} - {name} заработал $0")

@@ -13,6 +13,7 @@ async def noteMoney(bot, chooseOwner, hours, minutes, chooseCar, customSumm, neg
     for user in access_list:
         if user[0][3] == chooseOwner:
             await changeMoney(user[0][2], bot, user[0][4], chooseCar, hours, minutes, customSumm, negative)
+            break
 
 async def changeMoney(channel_id, bot, string, chooseCar, hours, minutes, customSumm, negative):
     channel = bot.get_channel(channel_id)
@@ -40,14 +41,16 @@ def getPrice(car, hours, minutes):
     ]
     for prices in price_list:
         if prices[0] == car:
-            if hours == 1:
-                return prices[1]
             if hours == 1 and minutes == 30:
                 return prices[2]
+            if hours == 1:
+                return prices[1]
             if hours == 2:
                 return prices[3]
             if hours == 3:
                 return prices[4]
+            else:
+                return [0, 0]
 
 def process(chooseCar, messages, hours, minutes, customSumm, negative):  # для noteMoney()
     #try:
@@ -70,7 +73,7 @@ def process(chooseCar, messages, hours, minutes, customSumm, negative):  # дл�
     hours = int(hours)
     minutes = int(minutes)
     customSumm = int(customSumm)
-    if customSumm != 0 and chooseCar != 2:
+    if customSumm != 0:
         if negative == 1:
             temp_thousands = customSumm // 1000
             customSumm -= temp_thousands * 1000
@@ -94,6 +97,7 @@ def process(chooseCar, messages, hours, minutes, customSumm, negative):  # дл�
         price = getPrice(chooseCar, hours, minutes)
         thousands+=price[0]
         hundreds+=price[1]
+        print(f'Денег прибавлено: {price[0]}.{price[1]}к')
     if hundreds >= 10:
         thousands+=1
         hundreds-=10
